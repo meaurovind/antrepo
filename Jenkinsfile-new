@@ -1,0 +1,41 @@
+pipeline{
+    agent any
+    stages{
+        stage('clone'){
+            steps{
+                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/develop']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/csenapati12/antrepo.git']]]
+                echo "clone"
+            }
+        }
+        stage('build'){
+            steps{
+                
+               withAnt(installation: 'apache-ant-1.9.14', jdk: 'jdk1.9.181') {
+  bat label: '', script: 'ant'
+}
+                echo "build"
+            }
+        }
+        stage('sonar'){
+            steps{
+                sh label: '', script: '''cd /tmp
+./startup.sh'''
+            }
+        }
+        stage('nexus upload'){
+            steps{
+                echo "nexus upload"
+            }
+        }
+  
+        stage('Deploy'){
+                   when{
+    branch 'master'
+  }
+            steps{
+                echo "Deploy"
+            }
+        }
+    }
+
+}
